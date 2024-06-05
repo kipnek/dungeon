@@ -1,51 +1,36 @@
 using Godot;
 using System;
 
-public partial class PlayerMoveState : Node
+public partial class PlayerMoveState : PlayerState
 {
-    private Player characterNode;
-    public override void _Ready()
-    {
-        characterNode = GetOwner<Player>();
-        SetPhysicsProcess(false);
-        SetProcessInput(false);
-    }
+
+    [Export(PropertyHint.Range, "0,20,0.1")] private float moveSpeed = 6.0f;
 
     public override void _PhysicsProcess(double delta)
     {
         if (characterNode.direction == Vector2.Zero)
         {
-            characterNode.stateMachineNode.SwitchState<PlayerIdleState>();
+            characterNode.StateMachineNode.SwitchState<PlayerIdleState>();
         }
 
         characterNode.Velocity = new(characterNode.direction.X, 0, characterNode.direction.Y);
-        characterNode.Velocity *= 5;
+        characterNode.Velocity *= moveSpeed;
         characterNode.MoveAndSlide();
         characterNode.Flip();
     }
 
-    public override void _Notification(int what)
-    {
-        base._Notification(what);
-
-        if (what == 5001)
-        {
-            characterNode.animPlayerNode.Play(GameConstants.ANIMATION_MOVE);
-            SetPhysicsProcess(true);
-            SetProcessInput(true);
-        }
-        else if (what == 5002)
-        {
-            SetPhysicsProcess(false);
-            SetProcessInput(false);
-        }
-    }
 
     public override void _Input(InputEvent @event)
     {
         if (Input.IsActionJustPressed(GameConstants.DASH))
         {
-            characterNode.stateMachineNode.SwitchState<PlayerDashState>();
+            characterNode.StateMachineNode.SwitchState<PlayerDashState>();
         }
+    }
+
+    protected override void EnterState()
+    {
+        base.EnterState();
+        characterNode.AnimPlayerNode.Play(GameConstants.ANIMATION_MOVE);
     }
 }
